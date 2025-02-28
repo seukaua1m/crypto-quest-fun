@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -16,15 +15,17 @@ import {
 import { ArrowRight, BarChart3 } from 'lucide-react';
 
 const INITIAL_BALANCE = 30;
+const TARGET_BALANCE = 500;
 const TOTAL_STAGES = 5;
 
-// Predefined stage outcomes with multipliers (positive for win, negative for loss)
+// Predefined stage outcomes with multipliers for wins
+// All stages are wins to reach the target of R$500
 const STAGE_OUTCOMES = [
-  { multiplier: 2.0, win: true },    // Stage 1: Double money (win)
-  { multiplier: -0.5, win: false },  // Stage 2: Lose half (loss)
-  { multiplier: 3.0, win: true },    // Stage 3: Triple money (big win)
-  { multiplier: -0.7, win: false },  // Stage 4: Lose 70% (big loss)
-  { multiplier: 5.0, win: true },    // Stage 5: 5x money (massive win)
+  { multiplier: 2.0, win: true },    // Stage 1: Double money (60)
+  { multiplier: 1.5, win: true },    // Stage 2: 1.5x money (90)
+  { multiplier: 2.0, win: true },    // Stage 3: Double money (180)
+  { multiplier: 1.5, win: true },    // Stage 4: 1.5x money (270)
+  { multiplier: 1.85, win: true },   // Stage 5: Final boost to reach 500
 ];
 
 const Simulation = () => {
@@ -71,10 +72,10 @@ const Simulation = () => {
       const winAmount = Math.abs(stageAmount * stageOutcome.multiplier);
       const newBalance = balance + winAmount;
       setBalance(newBalance);
-      playSoundEffect(true);
+      playSoundEffect(true); // Play cash sound for winning
     } else {
-      // Calculate loss amount based on multiplier
-      const lossAmount = Math.abs(stageAmount * stageOutcome.multiplier);
+      // This part won't be used since all stages are wins, but keeping for consistency
+      const lossAmount = Math.abs(stageAmount * 0.2); // Small loss just in case
       const newBalance = Math.max(balance - lossAmount, 5); // Never go below 5
       setBalance(newBalance);
       playSoundEffect(false);
@@ -90,6 +91,11 @@ const Simulation = () => {
       setStageComplete(false);
       setCrypto(getRandomItem(cryptoCurrencies));
     } else {
+      // Check if we've reached target balance, adjust if needed
+      if (balance < TARGET_BALANCE) {
+        setBalance(TARGET_BALANCE); // Ensure we reach exactly R$500
+      }
+      
       // Final stage complete - show withdrawal modal
       setSimulationComplete(true);
       setShowWithdrawalModal(true);

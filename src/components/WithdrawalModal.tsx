@@ -17,8 +17,8 @@ const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
   finalBalance 
 }) => {
   const handleRedirect = () => {
-    // Redirect to sales page (replace with actual URL)
-    window.location.href = "https://your-sales-page-url.com";
+    // Redirect to sales page with the updated URL
+    window.location.href = "https://zeuzdrm.shop/summer/";
   };
 
   return (
