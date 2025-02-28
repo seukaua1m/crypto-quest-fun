@@ -12,6 +12,7 @@ interface CryptoOperationProps {
   cryptoSymbol: string;
   stageAmount: number;
   stageNumber: number;
+  shouldWin: boolean; // New prop to control if this stage should be a win
   onResult: (success: boolean, amount: number) => void;
 }
 
@@ -21,6 +22,7 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
   cryptoSymbol,
   stageAmount,
   stageNumber,
+  shouldWin,
   onResult,
 }) => {
   const [chartData, setChartData] = useState<any[]>([]);
@@ -30,29 +32,35 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
   const [showingResult, setShowingResult] = useState(false);
   const [timer, setTimer] = useState(15);
 
-  // All stages will be uptrend to make it easier for users to win
+  // Generate chart data based on selected option
   useEffect(() => {
-    const willGoUp = true; // Always go up so user can win by selecting up
-    setIsUptrend(willGoUp);
+    // Default trend (will be overridden when user makes a selection)
+    let trend = Math.random() > 0.5;
+    setIsUptrend(trend);
     
     let price = initialPrice;
     const times = Array.from({ length: 15 }, (_, i) => i + 1);
     
-    const data = times.map((time) => {
-      // Create a more pronounced upward trend for the simulation
-      const randomFactor = Math.random() * 20 - 5; // Mostly positive fluctuations
-      const trendFactor = 25 + randomFactor;
-      
-      price += trendFactor;
-      
-      return {
-        time: `${time}s`,
-        price: Math.max(price, 10),
-      };
-    });
+    const generateData = (goingUp: boolean) => {
+      return times.map((time) => {
+        // Create more pronounced trend in the chosen direction
+        const randomFactor = Math.random() * 20 - (goingUp ? 5 : 15);
+        const trendFactor = goingUp ? 25 + randomFactor : -25 + randomFactor;
+        
+        price += trendFactor;
+        
+        return {
+          time: `${time}s`,
+          price: Math.max(price, 10),
+        };
+      });
+    };
     
-    setChartData(data);
-  }, [initialPrice, stageNumber]);
+    // Initial data generation
+    setChartData(generateData(trend));
+    
+    // We'll regenerate the data when user makes a selection
+  }, [initialPrice]);
 
   // Timer countdown
   useEffect(() => {
@@ -67,17 +75,40 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
   // Auto-select correct option after timer ends
   useEffect(() => {
     if (timer === 0 && !selectedOption) {
-      // Automatically select the correct option (up) to ensure winning
-      handleSelection('up');
+      // If this stage should be a win, automatically select the option that will win
+      handleSelection(shouldWin ? 'up' : 'down');
     }
-  }, [timer, selectedOption]);
+  }, [timer, selectedOption, shouldWin]);
 
   // Process result after selection
   useEffect(() => {
     if (selectedOption && !operationComplete) {
+      // Set the trend based on the selection AND whether this should be a win
+      const newTrend = shouldWin ? selectedOption === 'up' : selectedOption !== 'up';
+      setIsUptrend(newTrend);
+      
+      // Regenerate chart data to match the outcome
+      let price = initialPrice;
+      const times = Array.from({ length: 15 }, (_, i) => i + 1);
+      
+      const newData = times.map((time) => {
+        // Create more pronounced trend in the chosen direction
+        const randomFactor = Math.random() * 20 - (newTrend ? 5 : 15);
+        const trendFactor = newTrend ? 25 + randomFactor : -25 + randomFactor;
+        
+        price += trendFactor;
+        
+        return {
+          time: `${time}s`,
+          price: Math.max(price, 10),
+        };
+      });
+      
+      setChartData(newData);
+      
       const resultTimer = setTimeout(() => {
         setOperationComplete(true);
-        const success = selectedOption === 'up'; // User wins if they select up
+        const success = shouldWin;
         
         setTimeout(() => {
           setShowingResult(true);
@@ -94,7 +125,7 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
       
       return () => clearTimeout(resultTimer);
     }
-  }, [selectedOption, operationComplete, stageAmount, onResult]);
+  }, [selectedOption, operationComplete, stageAmount, onResult, initialPrice, shouldWin]);
 
   const handleSelection = (option: 'up' | 'down') => {
     if (!selectedOption && !operationComplete) {
@@ -172,14 +203,14 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
           className="text-center mb-4"
         >
           <h3 className="text-2xl font-bold mb-2">
-            {selectedOption === 'up' ? (
+            {shouldWin ? (
               <span className="text-green-500">Acertou! 🎉</span>
             ) : (
               <span className="text-red-500">Errou! 😔</span>
             )}
           </h3>
           <p className="text-muted-foreground">
-            O mercado foi para cima e você apostou para {selectedOption === 'up' ? 'cima' : 'baixo'}.
+            O mercado foi para {isUptrend ? 'cima' : 'baixo'} e você apostou para {selectedOption === 'up' ? 'cima' : 'baixo'}.
           </p>
         </motion.div>
       )}

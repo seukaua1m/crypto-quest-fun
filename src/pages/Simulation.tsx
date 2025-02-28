@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '@/components/Header';
@@ -18,14 +19,15 @@ const INITIAL_BALANCE = 30;
 const TARGET_BALANCE = 500;
 const TOTAL_STAGES = 5;
 
-// Predefined stage outcomes with multipliers for wins
-// All stages are wins to reach the target of R$500
+// Predefined stage outcomes to ensure:
+// 1. User wins at least 4 out of 5 stages
+// 2. Final balance is exactly R$500
 const STAGE_OUTCOMES = [
-  { multiplier: 2.0, win: true },    // Stage 1: Double money (60)
-  { multiplier: 1.5, win: true },    // Stage 2: 1.5x money (90)
-  { multiplier: 2.0, win: true },    // Stage 3: Double money (180)
-  { multiplier: 1.5, win: true },    // Stage 4: 1.5x money (270)
-  { multiplier: 1.85, win: true },   // Stage 5: Final boost to reach 500
+  { shouldWin: true, multiplier: 2.0 },   // Stage 1: Double money (60)
+  { shouldWin: true, multiplier: 2.0 },   // Stage 2: Double money (120)
+  { shouldWin: true, multiplier: 1.5 },   // Stage 3: 1.5x money (180)
+  { shouldWin: false, multiplier: 0.5 },  // Stage 4: Lose half (90) - the one loss
+  { shouldWin: true, multiplier: 4.56 },  // Stage 5: Final boost to reach 500
 ];
 
 const Simulation = () => {
@@ -64,18 +66,15 @@ const Simulation = () => {
     const stageOutcome = STAGE_OUTCOMES[currentStage];
     const stageAmount = calculateStageAmount();
     
-    // Override the success based on predefined outcomes
-    const outcomeSuccess = stageOutcome.win;
-    
-    if (outcomeSuccess) {
-      // Calculate win amount based on multiplier
-      const winAmount = Math.abs(stageAmount * stageOutcome.multiplier);
+    if (success) {
+      // Use the predefined multiplier for this stage
+      const winAmount = Math.floor(stageAmount * stageOutcome.multiplier);
       const newBalance = balance + winAmount;
       setBalance(newBalance);
       playSoundEffect(true); // Play cash sound for winning
     } else {
-      // This part won't be used since all stages are wins, but keeping for consistency
-      const lossAmount = Math.abs(stageAmount * 0.2); // Small loss just in case
+      // If it's a loss stage, calculate a loss that's not too severe
+      const lossAmount = Math.floor(stageAmount * 0.5); // Lose half the stake
       const newBalance = Math.max(balance - lossAmount, 5); // Never go below 5
       setBalance(newBalance);
       playSoundEffect(false);
@@ -91,10 +90,8 @@ const Simulation = () => {
       setStageComplete(false);
       setCrypto(getRandomItem(cryptoCurrencies));
     } else {
-      // Check if we've reached target balance, adjust if needed
-      if (balance < TARGET_BALANCE) {
-        setBalance(TARGET_BALANCE); // Ensure we reach exactly R$500
-      }
+      // Final adjustment to ensure exactly R$500 at the end
+      setBalance(TARGET_BALANCE);
       
       // Final stage complete - show withdrawal modal
       setSimulationComplete(true);
@@ -200,6 +197,7 @@ const Simulation = () => {
                 cryptoSymbol={crypto.symbol}
                 stageAmount={calculateStageAmount()}
                 stageNumber={currentStage + 1}
+                shouldWin={STAGE_OUTCOMES[currentStage].shouldWin}
                 onResult={handleOperationResult}
               />
             </motion.div>
