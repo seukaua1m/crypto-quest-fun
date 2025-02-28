@@ -1,13 +1,16 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
   XAxis,
   YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  Cell,
 } from 'recharts';
 
 interface CryptoChartProps {
@@ -44,22 +47,38 @@ const CryptoChart: React.FC<CryptoChartProps> = ({
     }
   }, [data, animated]);
 
-  const gradientColor = isUptrend ? '#22c55e' : '#ef4444';
-  const strokeColor = isUptrend ? '#22c55e' : '#ef4444';
+  const greenColor = '#22c55e';
+  const redColor = '#ef4444';
+  const strokeColor = isUptrend ? greenColor : redColor;
+  
+  // Prepare data for candlestick-like chart
+  const dataForChart = (animated ? animatedData : data).map(item => {
+    // Generate open, high, low, close values to make it look like a candlestick chart
+    const price = item.price;
+    const open = price - (Math.random() * 20);
+    const close = price;
+    const high = Math.max(open, close) + (Math.random() * 15);
+    const low = Math.min(open, close) - (Math.random() * 15);
+    const isGreen = close > open;
+    
+    return {
+      ...item,
+      open,
+      close,
+      high,
+      low,
+      isGreen
+    };
+  });
 
   return (
     <div className="w-full h-full">
       <ResponsiveContainer width="100%" height={height}>
-        <AreaChart
-          data={animated ? animatedData : data}
+        <BarChart
+          data={dataForChart}
           margin={{ top: 5, right: 5, left: 5, bottom: 5 }}
+          barGap={1}
         >
-          <defs>
-            <linearGradient id="colorGradient" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor={gradientColor} stopOpacity={0.8} />
-              <stop offset="95%" stopColor={gradientColor} stopOpacity={0} />
-            </linearGradient>
-          </defs>
           <CartesianGrid strokeDasharray="3 3" stroke="#333" />
           <XAxis
             dataKey="time"
@@ -80,16 +99,35 @@ const CryptoChart: React.FC<CryptoChartProps> = ({
               borderRadius: '8px',
               color: '#f3f4f6',
             }}
+            formatter={(value: number) => [`${value.toFixed(2)}`, 'Price']}
           />
-          <Area
-            type="monotone"
-            dataKey="price"
-            stroke={strokeColor}
-            strokeWidth={2}
-            fillOpacity={1}
-            fill="url(#colorGradient)"
-          />
-        </AreaChart>
+          <Bar
+            dataKey="high"
+            fill="transparent"
+            stroke="transparent"
+            barSize={6}
+          >
+            {dataForChart.map((entry, index) => (
+              <Cell 
+                key={`bar-${index}`} 
+                fill={entry.isGreen ? greenColor : redColor}
+              />
+            ))}
+          </Bar>
+          <Bar
+            dataKey="open"
+            fill="transparent"
+            stroke="transparent"
+            barSize={12}
+          >
+            {dataForChart.map((entry, index) => (
+              <Cell 
+                key={`bar-${index}`} 
+                fill={entry.isGreen ? greenColor : redColor}
+              />
+            ))}
+          </Bar>
+        </BarChart>
       </ResponsiveContainer>
     </div>
   );

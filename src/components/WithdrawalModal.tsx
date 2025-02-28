@@ -1,9 +1,8 @@
 
-import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import { ExternalLink } from "lucide-react";
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { motion } from 'framer-motion';
 
 interface WithdrawalModalProps {
   isOpen: boolean;
@@ -11,50 +10,63 @@ interface WithdrawalModalProps {
   finalBalance: number;
 }
 
-const WithdrawalModal: React.FC<WithdrawalModalProps> = ({ 
-  isOpen, 
+const WithdrawalModal: React.FC<WithdrawalModalProps> = ({
+  isOpen,
   onClose,
-  finalBalance 
+  finalBalance,
 }) => {
-  const handleRedirect = () => {
-    // Redirect to sales page with the updated URL
-    window.location.href = "https://zeuzdrm.shop/summer/";
+  const navigate = useNavigate();
+  const [isLoading, setIsLoading] = useState(false);
+
+  if (!isOpen) return null;
+
+  const handleWithdrawal = () => {
+    setIsLoading(true);
+    
+    // Simulate processing and then redirect to VSL page
+    setTimeout(() => {
+      navigate('/vsl', { state: { balance: finalBalance } });
+    }, 2000);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md mx-auto">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold text-center">
-            Parabéns!
-          </DialogTitle>
-          <DialogDescription className="text-center mt-2">
-            Você acumulou <span className="font-bold text-primary">R${finalBalance.toFixed(2)}</span>
-          </DialogDescription>
-        </DialogHeader>
+    <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="glass-card p-6 rounded-lg max-w-md w-full"
+      >
+        <h2 className="text-2xl font-bold mb-4">Parabéns!</h2>
+        <p className="mb-6 text-muted-foreground">
+          Você completou a simulação com sucesso e acumulou R${finalBalance.toFixed(2)}. 
+          Para sacar seus ganhos, assista um breve vídeo que explica como funciona o processo.
+        </p>
         
-        <div className="my-6 p-4 rounded-lg bg-muted">
-          <h3 className="text-lg font-semibold mb-2">Para sacar seus ganhos:</h3>
-          <p className="text-muted-foreground mb-4">
-            Você precisa assistir um vídeo curto que explica como profissionais utilizam estas mesmas estratégias no mercado real.
-          </p>
-        </div>
-        
-        <motion.div 
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          className="flex justify-center"
-        >
-          <Button 
-            size="lg" 
-            className="w-full flex items-center justify-center gap-2"
-            onClick={handleRedirect}
+        <div className="flex gap-4">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="flex-1"
           >
-            Assistir e Sacar Agora <ExternalLink className="w-4 h-4" />
+            Voltar
           </Button>
-        </motion.div>
-      </DialogContent>
-    </Dialog>
+          <Button
+            onClick={handleWithdrawal}
+            className="flex-1 bg-amber-500 hover:bg-amber-600 text-white"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <div className="w-4 h-4 rounded-full border-2 border-white/20 border-t-white animate-spin mr-2"></div>
+                Processando...
+              </>
+            ) : (
+              'Sacar Ganhos'
+            )}
+          </Button>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 

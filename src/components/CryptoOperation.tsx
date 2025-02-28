@@ -43,9 +43,9 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
     
     const generateData = (goingUp: boolean) => {
       return times.map((time) => {
-        // Create more pronounced trend in the chosen direction
-        const randomFactor = Math.random() * 20 - (goingUp ? 5 : 15);
-        const trendFactor = goingUp ? 25 + randomFactor : -25 + randomFactor;
+        // Create more pronounced and realistic trend in the chosen direction
+        const volatility = Math.random() * 40 - 20; // More volatility for realism
+        const trendFactor = goingUp ? 25 + volatility : -25 + volatility;
         
         price += trendFactor;
         
@@ -92,9 +92,9 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
       const times = Array.from({ length: 15 }, (_, i) => i + 1);
       
       const newData = times.map((time) => {
-        // Create more pronounced trend in the chosen direction
-        const randomFactor = Math.random() * 20 - (newTrend ? 5 : 15);
-        const trendFactor = newTrend ? 25 + randomFactor : -25 + randomFactor;
+        // Create more pronounced and realistic trend
+        const volatility = Math.random() * 40 - 20; // More volatility
+        const trendFactor = newTrend ? 25 + volatility : -25 + volatility;
         
         price += trendFactor;
         
