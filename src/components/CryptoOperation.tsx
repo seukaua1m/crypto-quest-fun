@@ -11,6 +11,7 @@ interface CryptoOperationProps {
   cryptoName: string;
   cryptoSymbol: string;
   stageAmount: number;
+  stageNumber: number;
   onResult: (success: boolean, amount: number) => void;
 }
 
@@ -19,6 +20,7 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
   cryptoName,
   cryptoSymbol,
   stageAmount,
+  stageNumber,
   onResult,
 }) => {
   const [chartData, setChartData] = useState<any[]>([]);
@@ -28,20 +30,21 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
   const [showingResult, setShowingResult] = useState(false);
   const [timer, setTimer] = useState(15);
 
-  // Generate random chart data
+  // Determine if it will be a winning or losing stage based on stage number
+  // Stages 1, 3, 5 are winning stages; Stages 2, 4 are losing stages
   useEffect(() => {
-    const willGoUp = Math.random() > 0.5;
+    const willGoUp = stageNumber % 2 === 1; // Odd stages go up, even stages go down
     setIsUptrend(willGoUp);
     
     let price = initialPrice;
     const times = Array.from({ length: 15 }, (_, i) => i + 1);
     
     const data = times.map((time) => {
-      // Create a trend with some randomness
-      const randomFactor = Math.random() * 50 - 25;
+      // Create a more pronounced trend for the simulation
+      const randomFactor = Math.random() * 30 - 15;
       const trendFactor = willGoUp ? 
-        15 + randomFactor : 
-        -15 + randomFactor;
+        25 + randomFactor : 
+        -25 + randomFactor;
       
       price += trendFactor;
       
@@ -52,7 +55,7 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
     });
     
     setChartData(data);
-  }, [initialPrice]);
+  }, [initialPrice, stageNumber]);
 
   // Timer countdown
   useEffect(() => {
@@ -63,6 +66,14 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
       return () => clearTimeout(countdown);
     }
   }, [timer, selectedOption, operationComplete]);
+
+  // Auto-select correct option after timer ends
+  useEffect(() => {
+    if (timer === 0 && !selectedOption) {
+      // Automatically select the correct option based on the stage
+      handleSelection(isUptrend ? 'up' : 'down');
+    }
+  }, [timer, selectedOption, isUptrend]);
 
   // Process result after selection
   useEffect(() => {
