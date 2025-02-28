@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import CryptoChart from './CryptoChart';
-import { ArrowTrendingUp, ArrowTrendingDown } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { formatCurrency } from '@/lib/utils';
 
@@ -132,7 +132,7 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
               className="flex-1 flex items-center justify-center gap-2 border-green-500 hover:bg-green-500/20"
               onClick={() => handleSelection('up')}
             >
-              <ArrowTrendingUp className="w-5 h-5 text-green-500" />
+              <TrendingUp className="w-5 h-5 text-green-500" />
               <span className="text-green-500 font-medium">Alta</span>
             </Button>
             <Button 
@@ -140,7 +140,7 @@ const CryptoOperation: React.FC<CryptoOperationProps> = ({
               className="flex-1 flex items-center justify-center gap-2 border-red-500 hover:bg-red-500/20"
               onClick={() => handleSelection('down')}
             >
-              <ArrowTrendingDown className="w-5 h-5 text-red-500" />
+              <TrendingDown className="w-5 h-5 text-red-500" />
               <span className="text-red-500 font-medium">Queda</span>
             </Button>
           </div>
